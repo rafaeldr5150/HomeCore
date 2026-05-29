@@ -3,6 +3,7 @@ from fastapi.responses import HTMLResponse, Response
 import subprocess
 import threading
 import uuid
+import os
 import re
 import json as json_module
 import requests as http_requests
@@ -170,7 +171,7 @@ def search_youtube(query, limit=3):
         return []
 
 
-HTML = open("/opt/downloader/index.html").read()
+HTML = open(os.path.join(os.path.dirname(__file__), "index.html")).read()
 
 
 @app.get("/", response_class=HTMLResponse)
