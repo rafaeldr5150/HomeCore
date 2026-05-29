@@ -4,17 +4,17 @@ This guide prepares your Ubuntu server from scratch. Follow these steps before s
 
 ## Prerequisites
 
-- A machine with **Ubuntu 22.04 LTS** installed (desktop or server edition)
+- A machine with **Ubuntu 22.04 LTS** installed ([official install guide](https://ubuntu.com/tutorials/install-ubuntu-server))
 - Basic comfort with a terminal (typing commands and pressing Enter)
 - An external HDD or large partition for media storage
 
-> **New to Linux?** You only need to know how to: open a terminal, type commands, and use a text editor (`nano`). Every command you need is written out in full below.
+> **New to Linux?** You only need to know how to: open a terminal, type commands, and use the `nano` text editor. Every command you need is written out in full below.
 
 ---
 
 ## 1. Access your server via SSH
 
-SSH lets you control the server remotely from your laptop or desktop — no monitor needed on the server.
+SSH lets you control the server remotely from your laptop — no monitor needed on the server.
 
 **On the server**, find its local IP:
 ```bash
@@ -22,13 +22,11 @@ ip a | grep "inet " | grep -v 127
 # Look for something like: inet 192.168.1.100
 ```
 
-**On your laptop** (Windows/Mac/Linux):
+**On your laptop** (Windows PowerShell, Mac/Linux Terminal):
 ```bash
 ssh your_username@192.168.1.100
 # Type your password when prompted
 ```
-
-> On Windows, open **PowerShell** or **Command Prompt** and run the `ssh` command above.
 
 ---
 
@@ -40,42 +38,61 @@ sudo apt update && sudo apt upgrade -y
 
 ---
 
-## 3. Mount your external HDD
+## 3. Prepare your external HDD
+
+### If the drive is brand new (needs formatting)
 
 ```bash
-# List all drives and find yours (look for the large one, e.g. /dev/sdb)
+# List all drives — identify yours by size (e.g. /dev/sdb)
 lsblk
 
+# Create a partition (interactive — press n, p, 1, Enter, Enter, w)
+sudo fdisk /dev/sdb
+
+# Format as ext4
+sudo mkfs.ext4 /dev/sdb1
+```
+
+### Mount the drive
+
+```bash
 # Create the mount point
 sudo mkdir -p /mnt/hd
 
-# Get your drive's UUID (replace sdb1 with your partition)
+# Get the UUID of your partition
 sudo blkid /dev/sdb1
-# Output example: UUID="a1b2c3d4-..." TYPE="ext4"
+# Example output: UUID="a1b2c3d4-1234-..." TYPE="ext4"
 
 # Add to /etc/fstab so it mounts automatically on every boot
-echo 'UUID=YOUR_UUID_HERE /mnt/hd ext4 defaults,nofail 0 2' | sudo tee -a /etc/fstab
+# Replace YOUR_UUID with the value from blkid
+echo 'UUID=YOUR_UUID /mnt/hd ext4 defaults,nofail 0 2' | sudo tee -a /etc/fstab
 
-# Mount it now without rebooting
+# Mount now without rebooting
 sudo mount -a
 
-# Verify it's mounted
+# Verify it worked
 df -h /mnt/hd
+# Should show your drive's size
 ```
 
-> The `nofail` option is important — it prevents the server from failing to boot if the drive is disconnected.
+> The `nofail` option prevents the server from failing to boot if the drive is unplugged.
 
 ---
 
 ## 4. Create the folder structure
 
 ```bash
+# Media folders on the external HDD
 sudo mkdir -p /mnt/hd/{movies,tv,music}
 sudo mkdir -p /mnt/hd/nextcloud/{html,data,db}
+
+# Temporary download folder on the root disk
 sudo mkdir -p /downloads
+
+# Music downloader app folder
 sudo mkdir -p /opt/downloader
 
-# Create symlinks so services can use short paths
+# Symlinks so services can use short paths like /movies instead of /mnt/hd/movies
 sudo ln -s /mnt/hd/movies /movies
 sudo ln -s /mnt/hd/tv /tv
 sudo ln -s /mnt/hd/music /music
@@ -85,16 +102,15 @@ sudo ln -s /mnt/hd/music /music
 
 ## 5. Install Docker
 
-Docker runs Nextcloud (and optionally other services) in isolated containers.
+Docker runs Nextcloud in an isolated container.
 
 ```bash
-# Install Docker
 curl -fsSL https://get.docker.com | sh
 
 # Allow your user to run Docker without sudo
 sudo usermod -aG docker $USER
 
-# Apply group change (or log out and back in)
+# Apply the group change without logging out
 newgrp docker
 
 # Verify
@@ -103,18 +119,18 @@ docker --version
 
 ---
 
-## 6. Configure the firewall (UFW)
+## 6. Configure the firewall
 
-UFW blocks unwanted connections while allowing your services to be reached on the local network.
+UFW blocks unwanted traffic while keeping your services accessible on the local network.
 
 ```bash
-# Enable UFW
+# Enable the firewall
 sudo ufw enable
 
-# Allow SSH (IMPORTANT — do this first or you'll lock yourself out)
+# IMPORTANT: allow SSH first or you'll lose remote access
 sudo ufw allow ssh
 
-# Allow each service port
+# Allow each service
 sudo ufw allow 8096   # Jellyfin
 sudo ufw allow 8084   # Nextcloud
 sudo ufw allow 7878   # Radarr
@@ -125,7 +141,7 @@ sudo ufw allow 8080   # qBittorrent
 sudo ufw allow 8888   # Music Downloader
 sudo ufw allow 4533   # Navidrome
 
-# Check status
+# Verify
 sudo ufw status
 ```
 
@@ -134,44 +150,56 @@ sudo ufw status
 ## 7. Install dependencies
 
 ```bash
-# Python and pip
+# Python, pip, and ffmpeg (required for audio conversion)
 sudo apt install -y python3-pip ffmpeg
 
-# yt-dlp (used by Music Downloader)
+# yt-dlp — the tool used by Music Downloader to download audio from YouTube
 sudo curl -L https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp \
   -o /usr/local/bin/yt-dlp
 sudo chmod a+rx /usr/local/bin/yt-dlp
 
-# RetroArch + libretro cores (for ES-DE gaming)
+# RetroArch and libretro cores for ES-DE gaming
 sudo apt install -y retroarch \
-  libretro-nestopia libretro-snes9x libretro-gambatte \
-  libretro-mgba libretro-genesis-plus-gx libretro-mupen64plus \
+  libretro-nestopia \
+  libretro-snes9x \
+  libretro-gambatte \
+  libretro-mgba \
+  libretro-genesis-plus-gx \
+  libretro-mupen64plus \
   libretro-mame
 
-# Fix N64 core name (ES-DE looks for a different filename)
+# Fix: ES-DE expects mupen64plus_next but Ubuntu ships mupen64plus
 sudo ln -s /usr/lib/x86_64-linux-gnu/libretro/mupen64plus_libretro.so \
            /usr/lib/x86_64-linux-gnu/libretro/mupen64plus_next_libretro.so
 ```
 
 ---
 
-## 8. Verify everything
+## 8. Clone the HomeCore repo
+
+The repo contains config files and the Music Downloader app you'll need later.
 
 ```bash
-# HDD mounted
-df -h /mnt/hd
-
-# Docker running
-docker ps
-
-# Firewall active
-sudo ufw status
-
-# yt-dlp installed
-yt-dlp --version
+sudo apt install -y git
+git clone https://github.com/rafaeldr5150/HomeCore
+cd HomeCore
 ```
 
-If all four commands return output without errors, you're ready to set up the individual services.
+Keep this terminal open in the `HomeCore` folder for the next steps.
+
+---
+
+## Verify everything is ready
+
+```bash
+df -h /mnt/hd          # HDD mounted
+docker --version        # Docker installed
+sudo ufw status         # Firewall active
+yt-dlp --version        # yt-dlp installed
+ls /movies /tv /music   # Symlinks exist
+```
+
+All five should return output without errors. If any fail, re-check the relevant step above.
 
 ---
 

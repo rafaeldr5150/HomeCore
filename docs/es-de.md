@@ -4,9 +4,11 @@ ES-DE is a polished frontend for retro gaming that auto-scrapes box art and meta
 
 ## Install ES-DE
 
-Download the AppImage from [es-de.org](https://es-de.org):
-
 ```bash
+# Visit https://es-de.org/#downloads in a browser, right-click the Linux x86_64 AppImage
+# and copy the download link. Then on your server:
+wget "PASTE_DOWNLOAD_URL_HERE" -O ES-DE_x64.AppImage
+
 sudo mv ES-DE_x64.AppImage /opt/ES-DE.AppImage
 sudo chmod +x /opt/ES-DE.AppImage
 ```
@@ -70,3 +72,9 @@ Skyscraper -p nes
 ```
 
 > ScreenScraper has daily rate limits. Scrape a few systems per day or get a supporter account for higher limits.
+
+---
+
+## Next step
+
+→ [Set up remote access with Tailscale](tailscale.md)

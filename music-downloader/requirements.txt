@@ -2,4 +2,3 @@ fastapi
 uvicorn
 requests
 mutagen
-yt-dlp
