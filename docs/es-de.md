@@ -16,15 +16,16 @@ sudo chmod +x /opt/ES-DE.AppImage
 ## Install RetroArch cores
 
 ```bash
+# NES, SNES, Game Boy, GBA, Mega Drive, N64, Arcade, Dreamcast
 sudo apt install -y \
-  libretro-nestopia \        # NES
-  libretro-snes9x \          # SNES
-  libretro-gambatte \        # Game Boy / Game Boy Color
-  libretro-mgba \            # Game Boy Advance
-  libretro-genesis-plus-gx \ # Mega Drive / Master System
-  libretro-mupen64plus \     # Nintendo 64
-  libretro-mame \            # Arcade (MAME)
-  libretro-flycast            # Dreamcast
+  libretro-nestopia \
+  libretro-snes9x \
+  libretro-gambatte \
+  libretro-mgba \
+  libretro-genesis-plus-gx \
+  libretro-mupen64plus \
+  libretro-mame \
+  libretro-flycast
 ```
 
 ## Fix N64 core name
@@ -35,6 +36,25 @@ ES-DE looks for `mupen64plus_next_libretro.so` but Ubuntu only ships `mupen64plu
 sudo ln -s /usr/lib/x86_64-linux-gnu/libretro/mupen64plus_libretro.so \
            /usr/lib/x86_64-linux-gnu/libretro/mupen64plus_next_libretro.so
 ```
+
+## Launch ES-DE
+
+ES-DE is a graphical app — it needs a desktop environment or display server running. On a headless server connected to a TV via HDMI, start it from a desktop session:
+
+```bash
+/opt/ES-DE.AppImage
+```
+
+If you're running a minimal Ubuntu Server (no desktop), install a lightweight display manager first:
+
+```bash
+sudo apt install -y xorg openbox
+startx /opt/ES-DE.AppImage
+```
+
+> On a home server/HTPC that's always connected to a TV, the simplest setup is to install Ubuntu Desktop instead of Ubuntu Server, log in once, and launch ES-DE from the terminal or add it to autostart.
+
+---
 
 ## ROMs folder structure
 

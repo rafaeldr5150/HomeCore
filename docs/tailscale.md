@@ -31,7 +31,12 @@ Once connected, use the Tailscale IP instead of your local IP:
 | Jellyfin | `http://100.x.x.x:8096` |
 | Nextcloud | `http://100.x.x.x:8084` |
 | Radarr | `http://100.x.x.x:7878` |
+| Sonarr | `http://100.x.x.x:8989` |
+| Prowlarr | `http://100.x.x.x:9696` |
+| Bazarr | `http://100.x.x.x:6767` |
+| qBittorrent | `http://100.x.x.x:8080` |
 | Music Downloader | `http://100.x.x.x:8888` |
+| Navidrome | `http://100.x.x.x:4533` |
 
 ## Nextcloud trusted domains
 
@@ -45,3 +50,18 @@ docker exec nextcloud-nextcloud-1 php occ config:system:set trusted_domains 3 \
 ```
 
 > Including the domain **with** the port is required when using a non-standard port.
+
+---
+
+## Setup complete
+
+Your HomeCore is fully operational. From anywhere in the world, with Tailscale active on your phone or laptop, you have:
+
+- **Jellyfin** — stream your movies and TV shows
+- **Nextcloud** — your private Google Drive and Google Photos
+- **Radarr + Sonarr** — automated media downloads
+- **Navidrome** — stream your music library to any Subsonic app
+- **Music Downloader** — download from Spotify links directly to the server
+- **ES-DE** — retro gaming frontend with scraped artwork
+
+Everything runs on your own hardware, under your control, with no subscriptions.
